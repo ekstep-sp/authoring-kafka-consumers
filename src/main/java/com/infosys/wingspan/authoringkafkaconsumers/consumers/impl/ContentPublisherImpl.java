@@ -484,7 +484,13 @@ public class ContentPublisherImpl {
                 String publishedBy = String.valueOf(node.get(ProjectConstants.PUBLISHED_BY));
                 String identifier = String.valueOf(node.get(ProjectConstants.IDENTIFIER));
                 List<Map<String, Object>> comments = (List<Map<String, Object>>) node.get(ProjectConstants.COMMENTS);
+//                Start: Manipulate contentType in space societal platform
+                if(contentType.equals("Collection"))
+                    contentType.replace("Collection","Asset");
 
+                if(contentType.equals("Course"))
+                    contentType.replace("Course","Collection");
+//                  End
                 returnMap.put("creators",creators);
                 returnMap.put("publishers",publishers);
                 returnMap.put("contentType",contentType);
