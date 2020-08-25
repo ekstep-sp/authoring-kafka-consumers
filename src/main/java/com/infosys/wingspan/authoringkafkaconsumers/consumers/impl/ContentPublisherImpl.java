@@ -122,7 +122,6 @@ public class ContentPublisherImpl {
         }
 
         transaction.success();
-        transaction.close();
         session.close();
 
         logger.info(uuid + "    STARTING EMAIL");
@@ -145,7 +144,11 @@ public class ContentPublisherImpl {
         Map<String,Object> beforeUpdateTopLevelContentNode;
         try {
             String temp = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
-            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg,temp,Sets.newHashSet("identifier","duration","size"),transaction);
+            Session sessionTemp = neo4jDriver.session();
+            Transaction tempTx = sessionTemp.beginTransaction();
+            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, temp, Sets.newHashSet("identifier", "duration", "size"), tempTx);
+            tempTx.success();
+            sessionTemp.close();
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -157,7 +160,11 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allNodes;
         try {
-            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null,transaction);
+            Session sessionTemp = neo4jDriver.session();
+            Transaction tempTx = sessionTemp.beginTransaction();
+            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null,tempTx);
+            tempTx.success();
+            sessionTemp.close();
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -239,11 +246,14 @@ public class ContentPublisherImpl {
             deleteChildrenIds.add(originalId);
             ((List<Map<String,Object>>)imageNode.getOrDefault("children", new ArrayList<Map<String, Object>>())).forEach(item -> {
                 Map<String, Object> temp = new HashMap<>();
-                temp.put("startNodeId", originalId);
-                temp.put("endNodeId", item.get("endNodeId"));
-                item.remove("endNodeId");
-                temp.put("metadata", item);
-                updateChildrenRequest.add(temp);
+                Object endNodeId = item.get("endNodeId");
+                if (endNodeId != null) {
+                    temp.put("startNodeId", originalId);
+                    temp.put("endNodeId", endNodeId);
+                    item.remove("endNodeId");
+                    temp.put("metadata", item);
+                    updateChildrenRequest.add(temp);
+                }
             });
         }
 
@@ -259,11 +269,10 @@ public class ContentPublisherImpl {
             }
             updateMetaRequestsOriginalNodes.add(tempMap);
         }
-
-        logger.info(uuid + "        STEP8");
-        neo4JQueryHelpers.deleteChildRelations(rootOrg, deleteChildrenIds, transaction);
-        logger.info(uuid + "        STEP9");
         try {
+            logger.info(uuid + "        STEP8");
+            neo4JQueryHelpers.deleteChildRelations(rootOrg, deleteChildrenIds, transaction);
+            logger.info(uuid + "        STEP9");
             neo4JQueryHelpers.updateNodes(rootOrg, updateMetaRequestsImageNodes, transaction);
         } catch (Exception e) {
             e.printStackTrace();
@@ -273,12 +282,12 @@ public class ContentPublisherImpl {
             errors.put("ERROR_STACK_TRACE",e.getStackTrace());
             return errors;
         }
-        logger.info(uuid + "        STEP10");
-        neo4JQueryHelpers.mergeRelations(rootOrg, updateChildrenRequest, transaction);
-        logger.info(uuid + "        STEP11");
-        neo4JQueryHelpers.deleteNodes(rootOrg, deleteIds, transaction);
-        logger.info(uuid + "        STEP12");
         try {
+            logger.info(uuid + "        STEP10");
+            neo4JQueryHelpers.mergeRelations(rootOrg, updateChildrenRequest, transaction);
+            logger.info(uuid + "        STEP11");
+            neo4JQueryHelpers.deleteNodes(rootOrg, deleteIds, transaction);
+            logger.info(uuid + "        STEP12");
             neo4JQueryHelpers.updateNodes(rootOrg, updateMetaRequestsOriginalNodes, transaction);
         } catch (Exception e) {
             e.printStackTrace();
@@ -293,7 +302,11 @@ public class ContentPublisherImpl {
         topLevelContentId = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
         Map<String, Object> afterUpdateTopLevelContentNode;
         try {
-            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), transaction);
+            Session sessionTemp = neo4jDriver.session();
+            Transaction tempTx = sessionTemp.beginTransaction();
+            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), tempTx);
+            tempTx.success();
+            sessionTemp.close();
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 4 FAILED");
@@ -308,7 +321,11 @@ public class ContentPublisherImpl {
         ArrayList<Map<String,Object>> allContentsUpdateMetaRequest = new ArrayList<>();
         if (durationDifference != 0 || sizeDifference != 0) {
             try {
-                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, transaction);
+                Session sessionTemp = neo4jDriver.session();
+                Transaction tempTx = sessionTemp.beginTransaction();
+                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, tempTx);
+                tempTx.success();
+                sessionTemp.close();
                 if (!data.isEmpty()) {
                     for (Map<String, Object> datum : data) {
                         if (null != datum.get(ProjectConstants.DURATION) && !datum.get(ProjectConstants.DURATION).equals("null")) {
@@ -356,7 +373,11 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allContentData;
         try {
-            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , transaction);
+            Session sessionTemp = neo4jDriver.session();
+            Transaction tempTx = sessionTemp.beginTransaction();
+            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , tempTx);
+            tempTx.success();
+            sessionTemp.close();
             if (allContentData.isEmpty() || allContentData.size() != allContentIds.size()) {
                 logger.error(uuid + "#callContentAPIForFileMovement 0 FAILED");
                 transaction.failure();
@@ -470,7 +491,7 @@ public class ContentPublisherImpl {
 
     @SuppressWarnings("unchecked")
     @Async
-    private void callEmailService(String rootOrg, final String topLevelContentId, Session session1, String appUrl, UUID uuid) {
+    void callEmailService(String rootOrg, final String topLevelContentId, Session session1, String appUrl, UUID uuid) {
 
         Map<String, Object> data = session1.readTransaction(transaction -> {
             Map<String,Object> returnMap = new HashMap<>();

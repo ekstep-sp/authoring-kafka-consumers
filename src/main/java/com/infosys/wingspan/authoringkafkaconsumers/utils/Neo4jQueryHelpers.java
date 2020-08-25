@@ -2,18 +2,18 @@
                Use of this source code is governed by GPL v3 license that can be found in the LICENSE file or at https://opensource.org/licenses/GPL-3.0
                This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License version 3" */
 /*
-© 2017 - 2019 Infosys Limited, Bangalore, India. All Rights Reserved. 
+© 2017 - 2019 Infosys Limited, Bangalore, India. All Rights Reserved.
 Version: 1.10
 
 Except for any free or open source software components embedded in this Infosys proprietary software program (“Program”),
 this Program is protected by copyright laws, international treaties and other pending or existing intellectual property rights in India,
 the United States and other countries. Except as expressly permitted, any unauthorized reproduction, storage, transmission in any form or
-by any means (including without limitation electronic, mechanical, printing, photocopying, recording or otherwise), or any distribution of 
+by any means (including without limitation electronic, mechanical, printing, photocopying, recording or otherwise), or any distribution of
 this Program, or any portion of it, may result in severe civil and criminal penalties, and will be prosecuted to the maximum extent possible
 under the law.
 
 Highly Confidential
- 
+
 */
 package com.infosys.wingspan.authoringkafkaconsumers.utils;
 
@@ -26,6 +26,7 @@ import org.neo4j.driver.v1.Transaction;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class Neo4jQueryHelpers {
@@ -52,9 +53,7 @@ public class Neo4jQueryHelpers {
             else
                 query.append(field).append(": node.").append(field).append("} as node;");
         }
-              System.out.println("getNodeByIdentifier- query: "+query.toString());
-
-
+        Logger.getLogger(this.getClass().getName()).info("getNodeByIdentifier- query: "+query.toString());
         StatementResult result = transaction.run(query.toString());
         Map<String, Object> data = (Map<String, Object>) result.single().asMap().get("node");
         Map<String, Object> editableMap = new HashMap<>(data);
@@ -180,6 +179,9 @@ public class Neo4jQueryHelpers {
     }
 
     public void deleteChildRelations(String rootOrg, Set<String> identifiers, Transaction transaction) {
+        if(identifiers.isEmpty()) {
+            return;
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("identifiers", identifiers);
 
@@ -189,6 +191,9 @@ public class Neo4jQueryHelpers {
     }
 
     public void updateNodes(String rootOrg, List<Map<String, Object>> updateReq, Transaction transaction) {
+        if(updateReq.isEmpty()) {
+            return;
+        }
 
         updateReq.forEach(item-> {
             mapParser(item, false);
@@ -211,6 +216,9 @@ public class Neo4jQueryHelpers {
 
     public void mergeRelations(String rootOrg, List<Map<String, Object>> updateReq, Transaction transaction){
 
+        if(updateReq.isEmpty()) {
+            return;
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("updateRelation", updateReq);
 
@@ -234,6 +242,9 @@ public class Neo4jQueryHelpers {
 
     public void deleteNodes(String rootOrg, Set<String> deleteIds, Transaction transaction) {
 
+        if(deleteIds.isEmpty()) {
+            return;
+        }
         Map<String, Object> params = new HashMap<>();
         params.put("identifiers", deleteIds);
 
