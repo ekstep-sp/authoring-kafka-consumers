@@ -144,11 +144,7 @@ public class ContentPublisherImpl {
         Map<String,Object> beforeUpdateTopLevelContentNode;
         try {
             String temp = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
-            Session sessionTemp = neo4jDriver.session();
-            Transaction tempTx = sessionTemp.beginTransaction();
-            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, temp, Sets.newHashSet("identifier", "duration", "size"), tempTx);
-            tempTx.success();
-            sessionTemp.close();
+            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, temp, Sets.newHashSet("identifier", "duration", "size"), neo4jDriver.session());
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -160,11 +156,7 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allNodes;
         try {
-            Session sessionTemp = neo4jDriver.session();
-            Transaction tempTx = sessionTemp.beginTransaction();
-            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null,tempTx);
-            tempTx.success();
-            sessionTemp.close();
+            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null, neo4jDriver.session());
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -302,11 +294,7 @@ public class ContentPublisherImpl {
         topLevelContentId = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
         Map<String, Object> afterUpdateTopLevelContentNode;
         try {
-            Session sessionTemp = neo4jDriver.session();
-            Transaction tempTx = sessionTemp.beginTransaction();
-            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), tempTx);
-            tempTx.success();
-            sessionTemp.close();
+            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), neo4jDriver.session());
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 4 FAILED");
@@ -321,11 +309,7 @@ public class ContentPublisherImpl {
         ArrayList<Map<String,Object>> allContentsUpdateMetaRequest = new ArrayList<>();
         if (durationDifference != 0 || sizeDifference != 0) {
             try {
-                Session sessionTemp = neo4jDriver.session();
-                Transaction tempTx = sessionTemp.beginTransaction();
-                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, tempTx);
-                tempTx.success();
-                sessionTemp.close();
+                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, neo4jDriver.session());
                 if (!data.isEmpty()) {
                     for (Map<String, Object> datum : data) {
                         if (null != datum.get(ProjectConstants.DURATION) && !datum.get(ProjectConstants.DURATION).equals("null")) {
@@ -373,11 +357,7 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allContentData;
         try {
-            Session sessionTemp = neo4jDriver.session();
-            Transaction tempTx = sessionTemp.beginTransaction();
-            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , tempTx);
-            tempTx.success();
-            sessionTemp.close();
+            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , neo4jDriver.session());
             if (allContentData.isEmpty() || allContentData.size() != allContentIds.size()) {
                 logger.error(uuid + "#callContentAPIForFileMovement 0 FAILED");
                 transaction.failure();
