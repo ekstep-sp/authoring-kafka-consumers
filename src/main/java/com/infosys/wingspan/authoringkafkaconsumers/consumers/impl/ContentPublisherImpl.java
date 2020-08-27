@@ -122,6 +122,7 @@ public class ContentPublisherImpl {
         }
 
         transaction.success();
+        transaction.close();
         session.close();
 
         logger.info(uuid + "    STARTING EMAIL");
@@ -144,7 +145,7 @@ public class ContentPublisherImpl {
         Map<String,Object> beforeUpdateTopLevelContentNode;
         try {
             String temp = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
-            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, temp, Sets.newHashSet("identifier", "duration", "size"), neo4jDriver.session());
+            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg,temp,Sets.newHashSet("identifier", "duration", "size"),transaction);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -156,7 +157,7 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allNodes;
         try {
-            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null, neo4jDriver.session());
+            allNodes = neo4JQueryHelpers.getNodesWithChildren(rootOrg,allContentIds,null,transaction);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -294,7 +295,7 @@ public class ContentPublisherImpl {
         topLevelContentId = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
         Map<String, Object> afterUpdateTopLevelContentNode;
         try {
-            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), neo4jDriver.session());
+            afterUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg, topLevelContentId, Sets.newHashSet(ProjectConstants.IDENTIFIER, ProjectConstants.DURATION, ProjectConstants.SIZE), transaction);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 4 FAILED");
@@ -309,7 +310,7 @@ public class ContentPublisherImpl {
         ArrayList<Map<String,Object>> allContentsUpdateMetaRequest = new ArrayList<>();
         if (durationDifference != 0 || sizeDifference != 0) {
             try {
-                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, neo4jDriver.session());
+                List<Map<String, Object>> data = neo4JQueryHelpers.getReverseHierarchyFromNeo4jForDurationUpdate(topLevelContentId, rootOrg, transaction);
                 if (!data.isEmpty()) {
                     for (Map<String, Object> datum : data) {
                         if (null != datum.get(ProjectConstants.DURATION) && !datum.get(ProjectConstants.DURATION).equals("null")) {
@@ -357,7 +358,7 @@ public class ContentPublisherImpl {
         logger.info(uuid + "        STEP1");
         List<Map<String,Object>> allContentData;
         try {
-            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , neo4jDriver.session());
+            allContentData = neo4JQueryHelpers.getNodesByIdentifier(rootOrg, allContentIds, Sets.newHashSet(ProjectConstants.IDENTIFIER,ProjectConstants.ARTIFACT_URL,ProjectConstants.MIME_TYPE,ProjectConstants.ISEXTERNAL,ProjectConstants.RESOURCE_TYPE) , transaction);
             if (allContentData.isEmpty() || allContentData.size() != allContentIds.size()) {
                 logger.error(uuid + "#callContentAPIForFileMovement 0 FAILED");
                 transaction.failure();
@@ -471,7 +472,7 @@ public class ContentPublisherImpl {
 
     @SuppressWarnings("unchecked")
     @Async
-    void callEmailService(String rootOrg, final String topLevelContentId, Session session1, String appUrl, UUID uuid) {
+    private void callEmailService(String rootOrg, final String topLevelContentId, Session session1, String appUrl, UUID uuid) {
 
         Map<String, Object> data = session1.readTransaction(transaction -> {
             Map<String,Object> returnMap = new HashMap<>();

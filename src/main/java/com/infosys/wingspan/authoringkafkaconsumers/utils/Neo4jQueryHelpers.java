@@ -44,14 +44,6 @@ public class Neo4jQueryHelpers {
             "msArtifactDetails", "studyMaterials", "equivalentCertifications", ProjectConstants.TRANSCODING,
             ProjectConstants.PRICE, ProjectConstants.EDITORS);
 
-    public Map<String, Object> getNodeByIdentifier(String rootOrg, String identifier, Set<String> fields, Session session) {
-        Transaction tempTx = session.beginTransaction();
-        Map<String, Object> data = getNodeByIdentifier(rootOrg, identifier, fields, tempTx);
-        tempTx.success();
-        session.close();
-        return data;
-    }
-
     public Map<String, Object> getNodeByIdentifier(String rootOrg, String identifier, Set<String> fields, Transaction transaction) {
         StringBuilder query = new StringBuilder("match (node) where node.identifier='" + identifier + "' and (node:" + rootOrg + " or node:Shared) return {");
         Iterator<String> iterator = fields.iterator();
@@ -95,14 +87,6 @@ public class Neo4jQueryHelpers {
         }
     }
 
-    public List<Map<String, Object>> getNodesByIdentifier(String rootOrg, ArrayList<String> identifiers, Set<String> fields, Session session) {
-        Transaction tempTx = session.beginTransaction();
-        List<Map<String, Object>> data = getNodesByIdentifier(rootOrg, identifiers, fields, tempTx);
-        tempTx.success();
-        session.close();
-        return data;
-    }
-
     public List<Map<String, Object>> getNodesByIdentifier(String rootOrg, ArrayList<String> identifiers, Set<String> fields, Transaction transaction) {
         Map<String, Object> params = new HashMap<>();
         params.put("identifiers", identifiers);
@@ -137,14 +121,6 @@ public class Neo4jQueryHelpers {
                 records.add(editableMap);
             });
         return records;
-    }
-
-    public List<Map<String, Object>> getNodesWithChildren(String rootOrg, ArrayList<String> identifiers, Set<String> fields, Session session) {
-        Transaction tempTx = session.beginTransaction();
-        List<Map<String, Object>> data = getNodesWithChildren(rootOrg, identifiers, fields, tempTx);
-        tempTx.success();
-        session.close();
-        return data;
     }
 
     @SuppressWarnings("unchecked")
@@ -283,14 +259,6 @@ public class Neo4jQueryHelpers {
                 + " detach delete node;";
 
         transaction.run(query, params);
-    }
-
-    public List<Map<String, Object>> getReverseHierarchyFromNeo4jForDurationUpdate(String rootOrg, String identifier, Session session) {
-        Transaction tempTx = session.beginTransaction();
-        List<Map<String, Object>> data = getReverseHierarchyFromNeo4jForDurationUpdate(rootOrg, identifier, tempTx);
-        tempTx.success();
-        session.close();
-        return data;
     }
 
     public List<Map<String, Object>> getReverseHierarchyFromNeo4jForDurationUpdate(String rootOrg, String identifier, Transaction tx) {
