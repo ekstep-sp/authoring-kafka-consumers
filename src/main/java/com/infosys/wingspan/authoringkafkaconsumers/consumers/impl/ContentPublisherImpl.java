@@ -145,7 +145,7 @@ public class ContentPublisherImpl {
         Map<String,Object> beforeUpdateTopLevelContentNode;
         try {
             String temp = topLevelContentId.replace(ProjectConstants.IMG_SUFFIX, "");
-            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg,temp,Sets.newHashSet("identifier","duration","size"),transaction);
+            beforeUpdateTopLevelContentNode = neo4JQueryHelpers.getNodeByIdentifier(rootOrg,temp,Sets.newHashSet("identifier", "duration", "size"),transaction);
         } catch (Exception e) {
             e.printStackTrace();
             logger.error(uuid + "#updateNeo4jStatus 0 FAILED");
@@ -239,11 +239,14 @@ public class ContentPublisherImpl {
             deleteChildrenIds.add(originalId);
             ((List<Map<String,Object>>)imageNode.getOrDefault("children", new ArrayList<Map<String, Object>>())).forEach(item -> {
                 Map<String, Object> temp = new HashMap<>();
-                temp.put("startNodeId", originalId);
-                temp.put("endNodeId", item.get("endNodeId"));
-                item.remove("endNodeId");
-                temp.put("metadata", item);
-                updateChildrenRequest.add(temp);
+                Object endNodeId = item.get("endNodeId");
+                if (endNodeId != null) {
+                    temp.put("startNodeId", originalId);
+                    temp.put("endNodeId", endNodeId);
+                    item.remove("endNodeId");
+                    temp.put("metadata", item);
+                    updateChildrenRequest.add(temp);
+                }
             });
         }
 
@@ -259,11 +262,10 @@ public class ContentPublisherImpl {
             }
             updateMetaRequestsOriginalNodes.add(tempMap);
         }
-
-        logger.info(uuid + "        STEP8");
-        neo4JQueryHelpers.deleteChildRelations(rootOrg, deleteChildrenIds, transaction);
-        logger.info(uuid + "        STEP9");
         try {
+            logger.info(uuid + "        STEP8");
+            neo4JQueryHelpers.deleteChildRelations(rootOrg, deleteChildrenIds, transaction);
+            logger.info(uuid + "        STEP9");
             neo4JQueryHelpers.updateNodes(rootOrg, updateMetaRequestsImageNodes, transaction);
         } catch (Exception e) {
             e.printStackTrace();
@@ -273,12 +275,12 @@ public class ContentPublisherImpl {
             errors.put("ERROR_STACK_TRACE",e.getStackTrace());
             return errors;
         }
-        logger.info(uuid + "        STEP10");
-        neo4JQueryHelpers.mergeRelations(rootOrg, updateChildrenRequest, transaction);
-        logger.info(uuid + "        STEP11");
-        neo4JQueryHelpers.deleteNodes(rootOrg, deleteIds, transaction);
-        logger.info(uuid + "        STEP12");
         try {
+            logger.info(uuid + "        STEP10");
+            neo4JQueryHelpers.mergeRelations(rootOrg, updateChildrenRequest, transaction);
+            logger.info(uuid + "        STEP11");
+            neo4JQueryHelpers.deleteNodes(rootOrg, deleteIds, transaction);
+            logger.info(uuid + "        STEP12");
             neo4JQueryHelpers.updateNodes(rootOrg, updateMetaRequestsOriginalNodes, transaction);
         } catch (Exception e) {
             e.printStackTrace();
