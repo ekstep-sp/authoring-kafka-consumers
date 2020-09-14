@@ -36,6 +36,7 @@ public class Neo4jHealthIndicator implements HealthIndicator {
 
 			return buildStatusUp(resultSummary);
 		} catch (Exception var5) {
+			logger.error(MESSAGE_HEALTH_CHECK_FAILED);
 			return Health.down().withException(var5).build();
 		}
 
