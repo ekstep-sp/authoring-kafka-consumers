@@ -33,7 +33,6 @@ public class KafkaHealthIndicator implements HealthIndicator {
 			return Health.up()
 					.withDetail("clusterId", clusterId)
 					.withDetail("nodeCount", nodeCount)
-					.withDetails(kafkaAdminClient.listTopics().namesToListings().get())
 					.build();
 		} catch (Exception e) {
 			return Health.down()
