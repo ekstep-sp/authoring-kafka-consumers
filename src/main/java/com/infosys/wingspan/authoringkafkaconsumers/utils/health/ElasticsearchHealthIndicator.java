@@ -6,8 +6,12 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.json.JsonParser;
 import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.stereotype.Component;
@@ -18,7 +22,15 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+/**
+ * Requires bean createRestHighLevelClient of class org.elasticsearch.client.RestHighLevelClient
+ * /health endpoint must be enabled
+ * Can be configured using management.health.custom.elasticsearch.enabled property defaults to true if missing
+ */
 @Component
+@ConditionalOnBean(name = "createRestHighLevelClient")
+@ConditionalOnAvailableEndpoint(endpoint = HealthEndpoint.class)
+@ConditionalOnProperty(prefix = "management.health.custom", name = "elasticsearch.enabled", havingValue = "true", matchIfMissing = true)
 public class ElasticsearchHealthIndicator implements HealthIndicator {
 	private static final String RED_STATUS = "red";
 	private final RestClient client;
@@ -33,6 +45,7 @@ public class ElasticsearchHealthIndicator implements HealthIndicator {
 		Map<String, Object> response = this.jsonParser.parseMap(json);
 		String status = (String) response.get("status");
 		if (RED_STATUS.equals(status)) {
+			// RED Status indicates temporarily out of service
 			builder.outOfService().withDetail("health", RED_STATUS);
 		} else {
 			builder.up();

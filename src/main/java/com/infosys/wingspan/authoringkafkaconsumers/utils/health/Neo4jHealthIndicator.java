@@ -6,20 +6,23 @@ import org.neo4j.driver.v1.AccessMode;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.exceptions.SessionExpiredException;
-import org.neo4j.driver.v1.summary.ResultSummary;
-import org.neo4j.driver.v1.summary.ServerInfo;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnAvailableEndpoint;
-import org.springframework.boot.actuate.autoconfigure.endpoint.condition.ConditionalOnEnabledEndpoint;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthEndpoint;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
+/**
+ * Requires bean of class org.neo4j.driver.v1.Driver
+ * /health endpoint must be enabled
+ * Can be configured using management.health.custom.neo4j.enabled property defaults to true if missing
+ */
 @Component
 @ConditionalOnBean(value = Driver.class)
 @ConditionalOnAvailableEndpoint(endpoint = HealthEndpoint.class)
+@ConditionalOnProperty(prefix = "management.health.custom", name = "neo4j.enabled", havingValue = "true", matchIfMissing = true)
 public class Neo4jHealthIndicator implements HealthIndicator {
 	private static final Log logger = LogFactory.getLog(Neo4jHealthIndicator.class);
 	static final String CYPHER = "RETURN 1 AS result";
@@ -38,31 +41,22 @@ public class Neo4jHealthIndicator implements HealthIndicator {
 			try {
 				this.runHealthCheckQuery();
 			} catch (SessionExpiredException var4) {
+				// Retry configured for 1 Attempt in case of SessionExpiredException
 				logger.warn(MESSAGE_SESSION_EXPIRED);
 				this.runHealthCheckQuery();
 			}
-
 			return Health.up().build();
 		} catch (Exception var5) {
 			logger.error(MESSAGE_HEALTH_CHECK_FAILED);
-			return Health.down().withDetail("error",var5.getClass().getName()).build();
+			return Health.down().withDetail("error", var5.getClass().getName()).build();
 		}
-
 	}
 
-	private Health buildStatusUp(ResultSummary resultSummary) {
-		ServerInfo serverInfo = resultSummary.server();
-		return Health.up().withDetail("server", serverInfo.version() + "@" + serverInfo.address()).build();
-	}
-
-	ResultSummary runHealthCheckQuery() {
+	void runHealthCheckQuery() {
 		Session session = this.driver.session(AccessMode.WRITE);
 		Throwable var2 = null;
-
-		ResultSummary var4;
 		try {
-			ResultSummary resultSummary = session.run(CYPHER).consume();
-			var4 = resultSummary;
+			session.run(CYPHER).consume();
 		} catch (Throwable var13) {
 			var2 = var13;
 			throw var13;
@@ -78,9 +72,6 @@ public class Neo4jHealthIndicator implements HealthIndicator {
 					session.close();
 				}
 			}
-
 		}
-
-		return var4;
 	}
 }
