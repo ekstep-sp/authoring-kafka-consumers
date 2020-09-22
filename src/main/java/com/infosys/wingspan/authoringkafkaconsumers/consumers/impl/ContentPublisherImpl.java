@@ -104,12 +104,12 @@ public class ContentPublisherImpl {
             logger.info(uuid + "    END UPDATE NEO$J STATUS");
 
             logger.info(uuid + "    STARTING FILE MOVEMENT");
-            if (!callContentAPIForFileMovement(rootOrg, org, allContentIds, transaction, uuid, errors).isEmpty()) {
-                logger.error(uuid + "#callContentAPIForFileMovement FAILED");
-                transaction.close();
-                session.close();
-                return errors;
-            }
+//            if (!callContentAPIForFileMovement(rootOrg, org, allContentIds, transaction, uuid, errors).isEmpty()) {
+//                logger.error(uuid + "#callContentAPIForFileMovement FAILED");
+//                transaction.close();
+//                session.close();
+//                return errors;
+//            }
             logger.info(uuid + "    END FILE MOVEMENT");
         } catch (Exception e){
             logger.error(uuid + " Exception message " + e.getMessage());
@@ -486,7 +486,12 @@ public class ContentPublisherImpl {
                 String publishedBy = String.valueOf(node.get(ProjectConstants.PUBLISHED_BY));
                 String identifier = String.valueOf(node.get(ProjectConstants.IDENTIFIER));
                 List<Map<String, Object>> comments = (List<Map<String, Object>>) node.get(ProjectConstants.COMMENTS);
-
+//                Start: Manipulate contentType in space societal platform
+                if (contentType.equalsIgnoreCase("Collection"))
+                    contentType = ProjectConstants.ASSET;
+                if (contentType.equals("Course"))
+                    contentType = ProjectConstants.COURSE_MAP;
+//                  End
                 returnMap.put("creators",creators);
                 returnMap.put("publishers",publishers);
                 returnMap.put("contentType",contentType);
