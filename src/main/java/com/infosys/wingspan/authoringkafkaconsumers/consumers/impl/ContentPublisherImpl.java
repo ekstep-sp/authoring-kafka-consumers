@@ -487,7 +487,7 @@ public class ContentPublisherImpl {
 //                Start: Manipulate contentType in space societal platform
                 if (contentType.equalsIgnoreCase("Collection"))
                     contentType = ProjectConstants.ASSET;
-                if (contentType.equals("Course"))
+                if (contentType.equalsIgnoreCase("Course"))
                     contentType = ProjectConstants.COURSE_MAP;
 //                  End
                 returnMap.put("creators",creators);
