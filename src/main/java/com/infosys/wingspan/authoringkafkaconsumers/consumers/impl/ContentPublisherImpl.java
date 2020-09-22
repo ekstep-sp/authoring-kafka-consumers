@@ -104,12 +104,12 @@ public class ContentPublisherImpl {
             logger.info(uuid + "    END UPDATE NEO$J STATUS");
 
             logger.info(uuid + "    STARTING FILE MOVEMENT");
-//            if (!callContentAPIForFileMovement(rootOrg, org, allContentIds, transaction, uuid, errors).isEmpty()) {
-//                logger.error(uuid + "#callContentAPIForFileMovement FAILED");
-//                transaction.close();
-//                session.close();
-//                return errors;
-//            }
+            if (!callContentAPIForFileMovement(rootOrg, org, allContentIds, transaction, uuid, errors).isEmpty()) {
+                logger.error(uuid + "#callContentAPIForFileMovement FAILED");
+                transaction.close();
+                session.close();
+                return errors;
+            }
             logger.info(uuid + "    END FILE MOVEMENT");
         } catch (Exception e){
             logger.error(uuid + " Exception message " + e.getMessage());
