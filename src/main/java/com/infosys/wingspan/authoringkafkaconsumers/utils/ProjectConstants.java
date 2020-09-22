@@ -209,6 +209,10 @@ public final class ProjectConstants {
     public static final String STUDY_MATERIALS = "studyMaterials";
     public static final String EQUIVALENT_CERTIFICATIONS = "equivalentCertifications";
     public static final String SOURCE_SHORT_NAME = "sourceShortName";
+    //                Start: Manipulate contentType in space societal platform
+    public static final String ASSET = "Asset";
+    public static final String COURSE_MAP = "Collection";
+// End
 
     public ProjectConstants() {
     }
