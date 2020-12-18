@@ -6,5 +6,5 @@ docker run --name kafka-consumers-build kafka-consumers-build:latest &&  docker 
 docker rm -f kafka-consumers-build
 docker rmi -f kafka-consumers-build
 
-docker build --no-cache -t eagle-docker.tarento.com/wn-kafka-service:gold .
-docker push eagle-docker.tarento.com/wn-kafka-service:gold
+docker build --no-cache -t lexplatform.azurecr.io/wn-kafka-service:contentType-healthCheck-fix .
+docker push lexplatform.azurecr.io/wn-kafka-service:contentType-healthCheck-fix
